@@ -93,10 +93,10 @@
 # Version for compat libs
 %if 0%{?rhel} == 7 || 0%{?rhel} == 8
 %global compat_prefix         56
-%global compatver             5.6.51
-%global percona_compatver     91.0
+%global compatver             5.6.28
+%global percona_compatver     76.1
 %global compatlib             18
-%global compatsrc             https://www.percona.com/downloads/Percona-Server-5.6/Percona-Server-%{compatver}-%{percona_compatver}/binary/redhat/7/x86_64/Percona-Server-shared-56-%{compatver}-rel%{percona_compatver}.1.el7.x86_64.rpm
+%global compatsrc             https://www.percona.com/downloads/Percona-Server-5.6/Percona-Server-%{compatver}-%{percona_compatver}/binary/redhat/7/x86_64/Percona-Server-shared-56-%{compatver}-rel%{percona_compatver}.el7.x86_64.rpm
 %endif
 
 %if 0%{?rhel} == 6
@@ -486,7 +486,7 @@ fi
   pushd percona-compatlib
   wget %{compatsrc}
 %if 0%{?rhel} > 6
-  rpm2cpio Percona-Server-shared-%{compat_prefix}-%{compatver}-rel%{percona_compatver}.1.el7.x86_64.rpm | cpio --extract --make-directories --verbose
+  rpm2cpio Percona-Server-shared-%{compat_prefix}-%{compatver}-rel%{percona_compatver}.el7.x86_64.rpm | cpio --extract --make-directories --verbose
 %else
   rpm2cpio Percona-Server-shared-%{compat_prefix}-%{compatver}-rel%{percona_compatver}.624.rhel6.x86_64.rpm | cpio --extract --make-directories --verbose
 %endif # 0%{?rhel} > 6
@@ -527,7 +527,7 @@ mkdir debug
            -DWITH_INNODB_MEMCACHED=1 \
            -DMYSQL_MAINTAINER_MODE=OFF \
            -DFORCE_INSOURCE_BUILD=1 \
-           -DWITH_NUMA=1 \
+           -DWITH_NUMA=ON \
            -DWITH_LDAP=system \
            -DWITH_PACKAGE_FLAGS=OFF \
            -DWITH_SYSTEM_LIBS=ON \
@@ -579,7 +579,7 @@ mkdir release
            -DWITH_INNODB_MEMCACHED=1 \
            -DMYSQL_MAINTAINER_MODE=OFF \
            -DFORCE_INSOURCE_BUILD=1 \
-           -DWITH_NUMA=1 \
+           -DWITH_NUMA=ON \
            -DWITH_LDAP=system \
            -DWITH_PACKAGE_FLAGS=OFF \
            -DWITH_SYSTEM_LIBS=ON \
@@ -658,15 +658,11 @@ install -D -p -m 0755 packaging/rpm-common/mysqlrouter.init %{buildroot}%{_sysco
 %endif
 install -D -p -m 0644 packaging/rpm-common/mysqlrouter.conf %{buildroot}%{_sysconfdir}/mysqlrouter/mysqlrouter.conf
 
-# set rpath for plugin to use private/libfido2.so
-patchelf --debug --set-rpath '$ORIGIN/../private' %{buildroot}/%{_libdir}/mysql/plugin/authentication_fido.so
-
 # Remove files pages we explicitly do not want to package
 rm -rf %{buildroot}%{_infodir}/mysql.info*
 rm -rf %{buildroot}%{_datadir}/percona-server/mysql.server
 rm -rf %{buildroot}%{_datadir}/percona-server/mysqld_multi.server
 rm -f %{buildroot}%{_datadir}/percona-server/win_install_firewall.sql
-rm -f %{buildroot}%{_datadir}/percona-server/audit_log_filter_win_install.sql
 rm -rf %{buildroot}%{_bindir}/mysql_embedded
 rm -rf %{buildroot}/usr/cmake/coredumper-relwithdebinfo.cmake
 rm -rf %{buildroot}/usr/cmake/coredumper.cmake
@@ -1091,10 +1087,6 @@ fi
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/keyring_vault.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/procfs.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/procfs.so
-%attr(755, root, root) %{_libdir}/mysql/plugin/authentication_fido.so
-%attr(755, root, root) %{_libdir}/mysql/plugin/debug/authentication_fido.so
-%attr(755, root, root) %{_libdir}/mysql/plugin/authentication_ldap_sasl.so
-%attr(755, root, root) %{_libdir}/mysql/plugin/debug/authentication_ldap_sasl.so
 
 %if 0%{?rhel} > 6
 %attr(755, root, root) %{_libdir}/mysql/plugin/component_encryption_udf.so
@@ -1306,7 +1298,6 @@ fi
 %attr(755, root, root) %{_libdir}/mysql/plugin/component_test_mysql_runtime_error.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/libtest_sql_reset_connection.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/component_test_sensitive_system_variables.so
-%attr(755, root, root) %{_libdir}/mysql/plugin/conflicting_variables.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/component_test_mysql_runtime_error.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/libtest_sql_reset_connection.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/auth.so
@@ -1380,7 +1371,6 @@ fi
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/udf_example.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/component_mysqlx_global_reset.so
 %attr(755, root, root) %{_libdir}/mysql/plugin/debug/component_test_sensitive_system_variables.so
-%attr(755, root, root) %{_libdir}/mysql/plugin/debug/conflicting_variables.so
 
 %if 0%{?tokudb}
 %files -n percona-server-tokudb
