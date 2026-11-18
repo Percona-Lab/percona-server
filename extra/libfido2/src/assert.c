@@ -428,7 +428,7 @@ fido_verify_sig_es256(const fido_blob_t *dgst, const es256_pk_t *pk,
 	}
 
 	if ((pkey = es256_pk_to_EVP_PKEY(pk)) == NULL ||
-	    (ec = EVP_PKEY_get0_EC_KEY(pkey)) == NULL) {
+	    (ec = EVP_PKEY_get1_EC_KEY(pkey)) == NULL) {
 		fido_log_debug("%s: pk -> ec", __func__);
 		goto fail;
 	}
@@ -441,6 +441,8 @@ fido_verify_sig_es256(const fido_blob_t *dgst, const es256_pk_t *pk,
 
 	ok = 0;
 fail:
+	if (ec != NULL)
+		EC_KEY_free(ec);
 	if (pkey != NULL)
 		EVP_PKEY_free(pkey);
 
@@ -463,7 +465,7 @@ fido_verify_sig_rs256(const fido_blob_t *dgst, const rs256_pk_t *pk,
 	}
 
 	if ((pkey = rs256_pk_to_EVP_PKEY(pk)) == NULL ||
-	    (rsa = EVP_PKEY_get0_RSA(pkey)) == NULL) {
+	    (rsa = EVP_PKEY_get1_RSA(pkey)) == NULL) {
 		fido_log_debug("%s: pk -> ec", __func__);
 		goto fail;
 	}
@@ -476,6 +478,8 @@ fido_verify_sig_rs256(const fido_blob_t *dgst, const rs256_pk_t *pk,
 
 	ok = 0;
 fail:
+	if (rsa != NULL)
+		RSA_free(rsa);
 	if (pkey != NULL)
 		EVP_PKEY_free(pkey);
 
